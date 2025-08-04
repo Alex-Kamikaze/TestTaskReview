@@ -53,29 +53,47 @@ class HeroView(APIView):
 
         return Response(status=status.HTTP_200_OK)
 
-    def get(self, request, format=None):
-        serialized_request = HeroSearchRequestSerializer(data=request.query_params)
-        serialized_request.is_valid(raise_exception=True)
+    def get(self, request):
+        valid_params = {'name'}
+        numeric_params = {'intelligence', 'strength', 'speed', 'power'}
+        valid_suffixes = {'', '_gte', '_lte'}
 
-        # Базовый queryset, от него отталкиваемся в дальнейшем при фильтрации
+        for param in request.query_params:
+            base_param = param.split('_')[0] if '_' in param else param
+            suffix = param[len(base_param):] if '_' in param else ''
+            if base_param not in valid_params and base_param not in numeric_params:
+                return Response(
+                    {"error": f"Неправильный параметр: {param}"},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+            if base_param in numeric_params and suffix not in valid_suffixes:
+                return Response(
+                    {"error": f"Неподдерживаемый суффикс у параметра: {param}"},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+
+        serialized_data = HeroSearchRequestSerializer(data=request.query_params)
+        serialized_data.is_valid(raise_exception=True)
+        
+        name = serialized_data.validated_data.get("name")
+        
         queryset = Hero.objects.all()
 
-        if serialized_request.validated_data.get("name"):
-            queryset = queryset.filter(
-                name=serialized_request.validated_data.get("name")
-            )
+        
+        if name:
+            queryset = queryset.filter(name=name)
 
-        for param in ("intelligence", "strength", "speed", "power"):
-            for suffix in ("", "_gte", "_lte"):
-                param_value = serialized_request.validated_data.get(param + suffix)
+        for param in numeric_params:
+            for suffix in valid_suffixes:
+                param_value = request.query_params.get(param + suffix)
                 if param_value:
                     queryset = add_numeric_filter(queryset, param + suffix, param_value)
 
         if not queryset.exists():
             return Response(
-                "Герой с указанными характеристиками не найден!",
-                status=status.HTTP_404_NOT_FOUND,
+                "Не найдено героя, соответствующего указанным характеристикам",
+                status=status.HTTP_404_NOT_FOUND
             )
 
-        response = HeroModelSerializer(queryset, many=True)
-        return Response(response.data, status=status.HTTP_200_OK)
+        serializer = HeroModelSerializer(queryset, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)

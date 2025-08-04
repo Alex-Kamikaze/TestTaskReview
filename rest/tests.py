@@ -1,6 +1,7 @@
 from django.test import TestCase
 from rest_framework.test import APIClient
 from .models import Hero
+import json
 
 
 # Create your tests here.
@@ -48,16 +49,23 @@ class HeroSearchTestCase(TestCase):
         self.assertEqual(response.status_code, 404)
 
     def test_hero_with_correct_params_is_found(self):
-        """Проверяем поиск героя по характеристикам"""
+        """Проверяем поиск героя по точному сравнению характеристики"""
 
         response = self.client.get("/api/hero", {"intelligence": 90})
         self.assertEqual(response.status_code, 200)
 
-        response = self.client.get("/api/hero", {"intelligence__gte": 70})
+        response = self.client.get("/api/hero", {"name": "TestHero"})
         self.assertEqual(response.status_code, 200)
 
-        response = self.client.get("/api/hero", {"intelligence__lte": 100})
+    def test_comparison_for_params(self):
+        """ Проверяем поиск героя по характеристикам"""
+        response = self.client.get("/api/hero", {"intelligence_gte": 70})
+        self.assertEqual(response.status_code, 200)
+        data = json.loads(response.text)
+        self.assertEqual(data[0].get("intelligence"), 90)
+
+        response = self.client.get("/api/hero", {"intelligence_lte": 100})
         self.assertEqual(response.status_code, 200)
 
-        response = self.client.get("/api/hero", {"intelligence__gte": 87})
+        response = self.client.get("/api/hero", {"intelligence_gte": 87})
         self.assertEqual(response.status_code, 200)
