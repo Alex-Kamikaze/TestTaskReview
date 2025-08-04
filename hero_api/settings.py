@@ -11,6 +11,10 @@ https://docs.djangoproject.com/en/5.2/ref/settings/
 """
 
 from pathlib import Path
+from os import getenv
+from dotenv import load_dotenv
+
+load_dotenv()
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -27,8 +31,7 @@ DEBUG = True
 
 ALLOWED_HOSTS = []
 
-# TODO: Поменять на подгрузку из env-файла
-SUPERHERO_API_KEY = "a95b113e33b61f055d0389bb9c69622e"
+SUPERHERO_API_KEY = str(getenv("SUPERHERO_API_KEY"))
 
 
 # Application definition
