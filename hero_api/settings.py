@@ -10,6 +10,7 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/5.2/ref/settings/
 """
 
+import json
 from pathlib import Path
 from os import getenv
 from dotenv import load_dotenv
@@ -24,12 +25,12 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/5.2/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = "django-insecure-@bf5z0%ee_rp-(p337_w9@!6=@%%=)_o-pep7xxzz3bce*4bo-"
+SECRET_KEY = str(getenv("SECRET_KEY"))
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = bool(getenv("DEBUG"))
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = json.loads(getenv("ALLOWED_HOSTS"))
 
 SUPERHERO_API_KEY = str(getenv("SUPERHERO_API_KEY"))
 
