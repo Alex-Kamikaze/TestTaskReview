@@ -1,17 +1,18 @@
 """ Вся бизнес-логика приложения """
 import json
-from typing import Union
+from typing import List
 from requests import get
 from requests.exceptions import ConnectionError
 from .models import Hero
-from .serializers import HeroResponseSerializer
+from .serializers import HeroResponseSerializer, HeroSearchRequestSerializer
 from .service_models import ApiNotRespondedException, HeroNotFound
+from .filters import HeroFilter
 
 
 class HeroCreationService:
     """ Бизнес логика по поиску героя в SuperHero API и добавление его в базу нашего API """
 
-    def find_hero(self, api_key: str, name: str) -> bool:
+    def find_hero(self, api_key: str, name: str):
         """ Получаем информацию о герое """
 
         try:
@@ -38,3 +39,10 @@ class HeroCreationService:
                     Hero.objects.create(**serialized_hero.validated_data)
         except ConnectionError:
             raise ApiNotRespondedException()
+        
+class HeroSearchService:
+    """ Бизнес-логика обработки запроса по поиску героя """
+
+    def filter_hero(self, hero_parameters: HeroSearchRequestSerializer):
+        heroes_filtred = HeroFilter(hero_parameters.validated_data, queryset=Hero.objects.all())
+        return heroes_filtred.qs
