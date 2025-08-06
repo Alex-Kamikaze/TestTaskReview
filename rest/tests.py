@@ -58,7 +58,7 @@ class HeroSearchTestCase(TestCase):
         self.assertEqual(response.status_code, 200)
 
     def test_comparison_for_params(self):
-        """ Проверяем поиск героя по характеристикам"""
+        """Проверяем поиск героя по характеристикам"""
         response = self.client.get("/api/hero", {"intelligence_gte": 70})
         self.assertEqual(response.status_code, 200)
         data = json.loads(response.text)
