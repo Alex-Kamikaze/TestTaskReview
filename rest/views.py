@@ -1,6 +1,5 @@
 from django.conf import settings
 from rest_framework.views import APIView
-from rest_framework.generics import ListAPIView
 from rest_framework.response import Response
 from rest_framework import status
 from .serializers import (
@@ -9,7 +8,7 @@ from .serializers import (
     HeroSearchRequestSerializer,
 )
 from .services import HeroCreationService, HeroSearchService
-from .service_models import ApiNotRespondedException, HeroNotFound
+from .exceptions import ApiNotRespondedException, HeroNotFound
 
 
 class HeroCreationView(APIView):
@@ -35,7 +34,7 @@ class HeroCreationView(APIView):
                 status=status.HTTP_404_NOT_FOUND,
             )
         else:
-            return Response(status=status.HTTP_200_OK)
+            return Response(status=status.HTTP_201_CREATED)
         
     def get(self, request):
         """ Обработчик поиска по характеристикам (Знали бы вы, как я хотел это реализовать через ListAPIView....)"""

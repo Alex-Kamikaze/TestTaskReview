@@ -1,11 +1,10 @@
 """ Вся бизнес-логика приложения """
 import json
-from typing import List
 from requests import get
 from requests.exceptions import ConnectionError
 from .models import Hero
 from .serializers import HeroResponseSerializer, HeroSearchRequestSerializer
-from .service_models import ApiNotRespondedException, HeroNotFound
+from .exceptions import ApiNotRespondedException, HeroNotFound
 from .filters import HeroFilter
 
 
@@ -22,23 +21,26 @@ class HeroCreationService:
                 raise HeroNotFound()
 
             for hero_data in raw_response["results"]:
-                if Hero.objects.filter(id=hero_data.get("id")).exists():
-                    continue
-
-                hero_dict = {
-                    "id": int(hero_data.get("id")),
-                    "name": hero_data.get("name"),
-                    "intelligence": int(hero_data["powerstats"].get("intelligence", 0)),
-                    "strength": int(hero_data["powerstats"].get("strength", 0)),
-                    "power": int(hero_data["powerstats"].get("power", 0)),
-                    "speed": int(hero_data["powerstats"].get("speed", 0)),
-                }
-
-                serialized_hero = HeroResponseSerializer(data=hero_dict)
-                if serialized_hero.is_valid():
-                    Hero.objects.create(**serialized_hero.validated_data)
+                self.save_hero(hero_data)
+                
         except ConnectionError:
             raise ApiNotRespondedException()
+        
+    def save_hero(self, hero_data: dict):
+        if Hero.objects.filter(id=hero_data.get("id")).exists():
+            return
+        hero_dict = {
+            "id": int(hero_data.get("id")),
+            "name": hero_data.get("name"),
+            "intelligence": int(hero_data["powerstats"].get("intelligence", 0)),
+            "strength": int(hero_data["powerstats"].get("strength", 0)),
+            "power": int(hero_data["powerstats"].get("power", 0)),
+            "speed": int(hero_data["powerstats"].get("speed", 0)),
+        }
+
+        serialized_hero = HeroResponseSerializer(data=hero_dict)
+        if serialized_hero.is_valid():
+            Hero.objects.create(**serialized_hero.validated_data)
         
 class HeroSearchService:
     """ Бизнес-логика обработки запроса по поиску героя """
