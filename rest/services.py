@@ -2,6 +2,7 @@
 
 from typing import Protocol, Dict, List, TypedDict
 from dataclasses import dataclass
+import json
 from requests.exceptions import ConnectionError
 from .models import Hero
 from .serializers import HeroSearchRequestSerializer
@@ -39,7 +40,7 @@ class HeroCreationService:
         """ Получаем инфу с SuperHeroAPI"""
         try:
             resp = self.get(f"https://superheroapi.com/api/{self.api_key}/search/{name.lower()}")
-            return resp.json()
+            return json.loads(resp.text)
         except ConnectionError:
             raise ApiNotRespondedException()
 
@@ -53,7 +54,8 @@ class HeroCreationService:
     def _save_hero(self, hero_data: List[HeroServiceModel]):
         for hero in hero_data:
             if Hero.objects.filter(id=hero.get("id")).exists():
-                return
+                continue
+            
             hero_dict = {
                 "id": int(hero.get("id")),
                 "name": hero.get("name"),
@@ -67,6 +69,9 @@ class HeroCreationService:
 class HeroSearchService:
     """ Бизнес-логика обработки запроса по поиску героя """
 
-    def filter_hero(self, hero_parameters: HeroSearchRequestSerializer):
-        heroes_filtred = HeroFilter(hero_parameters.validated_data, queryset=Hero.objects.all())
-        return heroes_filtred.qs
+    def filter_hero(self, hero_parameters: Dict[str, str]):
+        heroes_filtred = HeroFilter(hero_parameters, queryset=Hero.objects.all())
+        if len(heroes_filtred.qs) == 0:
+            raise HeroNotFound()
+        else:
+            return heroes_filtred.qs

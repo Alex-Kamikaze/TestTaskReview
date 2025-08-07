@@ -9,6 +9,7 @@ from django.urls import reverse
 from .models import Hero
 from .services import HeroCreationService, HeroSearchService
 from .exceptions import HeroNotFound, ApiNotRespondedException
+from .factories import HeroModelFactory
 
 @pytest.fixture
 def mock_object():
@@ -17,6 +18,10 @@ def mock_object():
 @pytest.fixture
 def api_client():
     return APIClient()
+
+@pytest.fixture
+def search_service():
+    return HeroSearchService()
 
 
 def test_invalid_hero_name(mock_object):
@@ -105,3 +110,74 @@ def test_view_creates_hero_successfully(api_client):
         assert hero.strength == 100
         assert hero.speed == 100
         assert hero.power == 100
+
+@pytest.mark.django_db
+def test_search_service_with_incorrect_name(search_service: HeroSearchService):
+    """ Тест сервиса поиска героя в базе, проверяем выдачу при несуществующем имени """
+
+    with pytest.raises(HeroNotFound):
+        search_service.filter_hero({"name": "Unknown"})
+
+@pytest.mark.django_db
+def test_search_service_with_correct_name(search_service: HeroSearchService):
+    """ Тестируем сервис поиска героя на нахождения героя с корректным именем """
+
+    HeroModelFactory.create()
+    result = search_service.filter_hero({"name": "TestHero"})
+    hero = result.first()
+
+    assert len(result) > 0
+    assert hero.name == "TestHero"
+    assert hero.id == 12
+
+@pytest.mark.django_db
+def test_search_service_with_incorrect_filters(search_service: HeroSearchService):
+    """ Тест сервиса поиска на ошибки, если герой не найден """
+    HeroModelFactory.create()
+
+    with pytest.raises(HeroNotFound):
+        search_service.filter_hero({"intelligence": "101"})
+        search_service.filter_hero({"intelligence__lt": "50"})
+        search_service.filter_hero({"intelligence__gt": "110"})
+
+@pytest.mark.django_db
+def test_search_service_with_correct_filters(search_service: HeroSearchService):
+    """ Тест сервиса поиска с правильными фильтрами"""
+    HeroModelFactory.create()
+
+    hero = search_service.filter_hero({"intelligence": "90", "speed__gt": "10", "power__lt": "70"}).first()
+    assert hero.id == 12
+    assert hero.name == "TestHero"
+
+@pytest.mark.django_db
+def test_search_view_with_incorrect_name(api_client):
+    """ Тест view для поиска героя с неправильным именем """
+
+    resp = api_client.get("/api/hero?name=Unknown")
+    assert resp.status_code == 404
+    assert resp.text == "\"Герой с указанными характеристиками не найден!\""
+
+@pytest.mark.django_db
+def test_search_view_with_correct_name(api_client):
+
+    HeroModelFactory.create()
+    resp = api_client.get("/api/hero?name=TestHero")
+    assert resp.status_code == 200
+    assert resp.text != ""
+
+@pytest.mark.django_db
+def test_search_view_with_incorrect_filter(api_client):
+
+    HeroModelFactory.create()
+
+    resp = api_client.get("/api/hero?intelligence=110")
+    assert resp.status_code == 404
+    assert resp.text == "\"Герой с указанными характеристиками не найден!\""
+
+@pytest.mark.django_db
+def test_search_view_with_correct_filter(api_client):
+
+    HeroModelFactory.create()
+
+    resp = api_client.get("/api/hero?intelligence=90&power__gt=40")
+    assert resp.status_code == 200
