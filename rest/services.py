@@ -21,7 +21,12 @@ class HeroCreationService:
     get: RequestClient
     api_key: str
 
-    def call_external_api(self, name: str):
+    def __call__(self, name: str):
+        resp = self.__call_external_api(name=name)
+        hero_data = self.__process_hero_api_response(resp)
+        self.___save_hero(hero_data=hero_data)
+
+    def __call_external_api(self, name: str):
         """ Получаем инфу с SuperHeroAPI"""
         try:
             resp = self.get(f"https://superheroapi.com/api/{self.api_key}/search/{name.lower()}")
@@ -29,14 +34,14 @@ class HeroCreationService:
         except ConnectionError:
             raise ApiNotRespondedException()
 
-    def process_hero_api_response(self, raw_response: dict) -> dict:
+    def __process_hero_api_response(self, raw_response: dict) -> dict:
         """ Обработка ответа с внешнего API """
         if raw_response.get("response") == "error":
             raise HeroNotFound()
         else:
             return raw_response["results"]
         
-    def save_hero(self, hero_data: dict):
+    def ___save_hero(self, hero_data: dict):
         if Hero.objects.filter(id=hero_data.get("id")).exists():
             return
         hero_dict = {

@@ -23,10 +23,7 @@ class HeroView(APIView):
         service = HeroCreationService(get=requests.get, api_key=settings.SUPERHERO_API_KEY)
 
         try:
-            response = service.call_external_api(request_data.validated_data.get("name"))
-            hero_data = service.process_hero_api_response(response)
-            for hero in hero_data:
-                service.save_hero(hero)
+            service(name = request_data.validated_data.get("name"))
         except ApiNotRespondedException:
             return Response(
                 "SuperHero API не отвечает!", status=status.HTTP_408_REQUEST_TIMEOUT
