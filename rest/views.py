@@ -2,6 +2,7 @@ from django.conf import settings
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
+import requests
 from .serializers import (
     SearchHeroRequestSerializer,
     HeroModelSerializer,
@@ -11,7 +12,7 @@ from .services import HeroCreationService, HeroSearchService
 from .exceptions import ApiNotRespondedException, HeroNotFound
 
 
-class HeroCreationView(APIView):
+class HeroView(APIView):
     """Основное View для отправки/получения данных о героях"""
 
     def post(self, request):
@@ -19,11 +20,13 @@ class HeroCreationView(APIView):
 
         request_data = SearchHeroRequestSerializer(data=request.data)
         request_data.is_valid(raise_exception=True)
+        service = HeroCreationService(get=requests.get, api_key=settings.SUPERHERO_API_KEY)
 
         try:
-            HeroCreationService.find_hero(
-                settings.SUPERHERO_API_KEY, request_data.validated_data.get("name")
-            )
+            response = service.call_external_api(request_data.validated_data.get("name"))
+            hero_data = service.process_hero_api_response(response)
+            for hero in hero_data:
+                service.save_hero(hero)
         except ApiNotRespondedException:
             return Response(
                 "SuperHero API не отвечает!", status=status.HTTP_408_REQUEST_TIMEOUT

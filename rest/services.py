@@ -1,30 +1,40 @@
 """ Вся бизнес-логика приложения """
 import json
-from requests import get
+from typing import Protocol
+from dataclasses import dataclass
 from requests.exceptions import ConnectionError
 from .models import Hero
 from .serializers import HeroResponseSerializer, HeroSearchRequestSerializer
 from .exceptions import ApiNotRespondedException, HeroNotFound
 from .filters import HeroFilter
 
+class Response(Protocol):
+    def json(self) -> dict: ...
 
+class RequestClient(Protocol):
+    def get(url: str) -> Response: ...
+
+@dataclass
 class HeroCreationService:
     """ Бизнес логика по поиску героя в SuperHero API и добавление его в базу нашего API """
 
-    def find_hero(self, api_key: str, name: str):
-        """ Получаем информацию о герое """
+    get: RequestClient
+    api_key: str
 
+    def call_external_api(self, name: str):
+        """ Получаем инфу с SuperHeroAPI"""
         try:
-            resp = get(f"https://superheroapi.com/api/{api_key}/search/{name.lower()}")
-            raw_response = json.loads(resp.text)
-            if raw_response.get("response") == "error":
-                raise HeroNotFound()
-
-            for hero_data in raw_response["results"]:
-                self.save_hero(hero_data)
-                
+            resp = self.get(f"https://superheroapi.com/api/{self.api_key}/search/{name.lower()}")
+            return json.loads(resp.text)
         except ConnectionError:
             raise ApiNotRespondedException()
+
+    def process_hero_api_response(self, raw_response: dict) -> dict:
+        """ Обработка ответа с внешнего API """
+        if raw_response.get("response") == "error":
+            raise HeroNotFound()
+        else:
+            return raw_response["results"]
         
     def save_hero(self, hero_data: dict):
         if Hero.objects.filter(id=hero_data.get("id")).exists():
