@@ -41,21 +41,22 @@ class HeroCreationService:
         else:
             return raw_response["results"]
         
-    def ___save_hero(self, hero_data: dict):
-        if Hero.objects.filter(id=hero_data.get("id")).exists():
-            return
-        hero_dict = {
-            "id": int(hero_data.get("id")),
-            "name": hero_data.get("name"),
-            "intelligence": int(hero_data["powerstats"].get("intelligence", 0)),
-            "strength": int(hero_data["powerstats"].get("strength", 0)),
-            "power": int(hero_data["powerstats"].get("power", 0)),
-            "speed": int(hero_data["powerstats"].get("speed", 0)),
-        }
+    def ___save_hero(self, hero_data: list):
+        for hero in hero_data:
+            if Hero.objects.filter(id=hero.get("id")).exists():
+                return
+            hero_dict = {
+                "id": int(hero.get("id")),
+                "name": hero.get("name"),
+                "intelligence": int(hero["powerstats"].get("intelligence", 0)),
+                "strength": int(hero["powerstats"].get("strength", 0)),
+                "power": int(hero["powerstats"].get("power", 0)),
+                "speed": int(hero["powerstats"].get("speed", 0)),
+            }
 
-        serialized_hero = HeroResponseSerializer(data=hero_dict)
-        if serialized_hero.is_valid():
-            Hero.objects.create(**serialized_hero.validated_data)
+            serialized_hero = HeroResponseSerializer(data=hero_dict)
+            if serialized_hero.is_valid():
+                Hero.objects.create(**serialized_hero.validated_data)
         
 class HeroSearchService:
     """ Бизнес-логика обработки запроса по поиску героя """
