@@ -1,32 +1,36 @@
-""" Вся бизнес-логика приложения """
+"""Вся бизнес-логика приложения"""
 
 from typing import Protocol, Dict, List, TypedDict
 from dataclasses import dataclass
 import json
 from requests.exceptions import ConnectionError
 from .models import Hero
-from .serializers import HeroSearchRequestSerializer
 from .exceptions import ApiNotRespondedException, HeroNotFound
 from .filters import HeroFilter
+
 
 class HeroPowerstats(TypedDict):
     stat: str
     value: int
+
 
 class HeroServiceModel(TypedDict):
     id: str
     name: str
     powerstats: HeroPowerstats
 
+
 class Response(Protocol):
     def json(self) -> dict: ...
+
 
 class RequestClient(Protocol):
     def get(url: str) -> Response: ...
 
+
 @dataclass
 class HeroCreationService:
-    """ Бизнес логика по поиску героя в SuperHero API и добавление его в базу нашего API """
+    """Бизнес логика по поиску героя в SuperHero API и добавление его в базу нашего API"""
 
     get: RequestClient
     api_key: str
@@ -37,25 +41,29 @@ class HeroCreationService:
         self._save_hero(hero_data=hero_data)
 
     def _call_external_api(self, name: str) -> Dict[str, str]:
-        """ Получаем инфу с SuperHeroAPI"""
+        """Получаем инфу с SuperHeroAPI"""
         try:
-            resp = self.get(f"https://superheroapi.com/api/{self.api_key}/search/{name.lower()}")
+            resp = self.get(
+                f"https://superheroapi.com/api/{self.api_key}/search/{name.lower()}"
+            )
             return json.loads(resp.text)
         except ConnectionError:
             raise ApiNotRespondedException()
 
-    def _process_hero_api_response(self, raw_response: Dict[str, str]) -> HeroServiceModel:
-        """ Обработка ответа с внешнего API """
+    def _process_hero_api_response(
+        self, raw_response: Dict[str, str]
+    ) -> HeroServiceModel:
+        """Обработка ответа с внешнего API"""
         if raw_response.get("response") == "error":
             raise HeroNotFound()
         else:
             return raw_response["results"]
-        
+
     def _save_hero(self, hero_data: List[HeroServiceModel]):
         for hero in hero_data:
             if Hero.objects.filter(id=hero.get("id")).exists():
                 continue
-            
+
             hero_dict = {
                 "id": int(hero.get("id")),
                 "name": hero.get("name"),
@@ -65,9 +73,10 @@ class HeroCreationService:
                 "speed": int(hero["powerstats"].get("speed", 0)),
             }
             Hero.objects.create(**hero_dict)
-        
+
+
 class HeroSearchService:
-    """ Бизнес-логика обработки запроса по поиску героя """
+    """Бизнес-логика обработки запроса по поиску героя"""
 
     def filter_hero(self, hero_parameters: Dict[str, str]):
         heroes_filtred = HeroFilter(hero_parameters, queryset=Hero.objects.all())

@@ -29,11 +29,12 @@ class HeroResponseSerializer(serializers.Serializer):
 
     def create(self, validated_data):
         return Hero.objects.create(**validated_data)
-    
-class HeroSearchRequestSerializer(serializers.Serializer):
-    """ Сериализатор запроса поиска героя по базе """
 
-    name = serializers.CharField(max_length = 1024, required=False)
+
+class HeroSearchRequestSerializer(serializers.Serializer):
+    """Сериализатор запроса поиска героя по базе"""
+
+    name = serializers.CharField(max_length=1024, required=False)
     intelligence = serializers.IntegerField(required=False)
     strength = serializers.IntegerField(required=False)
     power = serializers.IntegerField(required=False)

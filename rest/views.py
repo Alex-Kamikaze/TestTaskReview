@@ -20,10 +20,12 @@ class HeroView(APIView):
 
         request_data = SearchHeroRequestSerializer(data=request.data)
         request_data.is_valid(raise_exception=True)
-        service = HeroCreationService(get=requests.get, api_key=settings.SUPERHERO_API_KEY)
+        service = HeroCreationService(
+            get=requests.get, api_key=settings.SUPERHERO_API_KEY
+        )
 
         try:
-            service(name = request_data.validated_data.get("name"))
+            service(name=request_data.validated_data.get("name"))
         except ApiNotRespondedException:
             return Response(
                 "SuperHero API не отвечает!", status=status.HTTP_408_REQUEST_TIMEOUT
@@ -35,9 +37,9 @@ class HeroView(APIView):
             )
         else:
             return Response(status=status.HTTP_201_CREATED)
-        
+
     def get(self, request):
-        """ Обработчик поиска по характеристикам (Знали бы вы, как я хотел это реализовать через ListAPIView....)"""
+        """Обработчик поиска по характеристикам (Знали бы вы, как я хотел это реализовать через ListAPIView....)"""
 
         request_data = HeroSearchRequestSerializer(data=request.query_params)
         request_data.is_valid(raise_exception=True)
@@ -49,4 +51,7 @@ class HeroView(APIView):
             serialized_heroes = HeroModelSerializer(heroes, many=True)
             return Response(serialized_heroes.data, status=status.HTTP_200_OK)
         except HeroNotFound:
-            return Response("Герой с указанными характеристиками не найден!", status=status.HTTP_404_NOT_FOUND)
+            return Response(
+                "Герой с указанными характеристиками не найден!",
+                status=status.HTTP_404_NOT_FOUND,
+            )
