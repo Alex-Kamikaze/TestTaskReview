@@ -6,7 +6,6 @@ import re
 from requests.exceptions import ConnectionError
 from rest_framework.test import APIClient
 from django.urls import reverse
-from django.conf import settings
 from .models import Hero
 from .services import HeroCreationService, HeroSearchService
 from .exceptions import HeroNotFound, ApiNotRespondedException
