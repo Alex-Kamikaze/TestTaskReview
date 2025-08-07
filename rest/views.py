@@ -39,13 +39,14 @@ class HeroView(APIView):
     def get(self, request):
         """ Обработчик поиска по характеристикам (Знали бы вы, как я хотел это реализовать через ListAPIView....)"""
 
-        request_data = HeroSearchRequestSerializer(request.query_params)
+        request_data = HeroSearchRequestSerializer(data=request.query_params)
         request_data.is_valid(raise_exception=True)
+        service = HeroSearchService()
+        print(request_data.validated_data)
 
-        heroes = HeroSearchService.filter_hero(request_data)
-        if heroes:
-            result = HeroModelSerializer(heroes, many=True)
-            result.is_valid(raise_exception=True)
-            return Response(data=result.validated_data, status=status.HTTP_200_OK)
-        else:
-            return Response("Не удалось найти героя с указанными характеристиками!", status=status.HTTP_404_NOT_FOUND)
+        try:
+            heroes = service.filter_hero(hero_parameters=request_data.validated_data)
+            serialized_heroes = HeroModelSerializer(heroes, many=True)
+            return Response(serialized_heroes.data, status=status.HTTP_200_OK)
+        except HeroNotFound:
+            return Response("Герой с указанными характеристиками не найден!", status=status.HTTP_404_NOT_FOUND)
