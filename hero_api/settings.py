@@ -50,8 +50,7 @@ INSTALLED_APPS = [
     "django.contrib.staticfiles",
     "rest_framework",
     "rest",
-    "health_check",                             
-    "health_check.db",    
+    "health_check",                              
 ]
 
 MIDDLEWARE = [
@@ -90,7 +89,7 @@ WSGI_APPLICATION = "hero_api.wsgi.application"
 DATABASES = {
     "default": {
         "ENGINE": "django.db.backends.sqlite3",
-        "NAME":env.str("DB_URI", default="sqlite://:memory:"),
+        "NAME":env.str("DB_URI", default=":memory:"),
     }
 }
 
