@@ -1,6 +1,5 @@
 import pytest
 import json
-from unittest.mock import MagicMock
 import requests_mock
 import re
 from requests.exceptions import ConnectionError
@@ -11,11 +10,9 @@ from .services import HeroCreationService, HeroSearchService
 from .exceptions import HeroNotFound, ApiNotRespondedException
 from .factories import HeroModelFactory
 
-
 @pytest.fixture
-def mock_object():
-    return MagicMock()
-
+def mock_object(mocker):
+    return mocker.MagicMock()
 
 @pytest.fixture
 def api_client():
@@ -80,14 +77,14 @@ def test_correct_hero_is_found(mock_object):
     assert hero.power == 40
 
 
-def test_view_with_api_not_responding(monkeypatch, mock_object, api_client):
+def test_view_with_api_not_responding(monkeypatch, mock_object, api_client, mocker):
     """Проверяем, что View выдает ошибку 408, если внешний API не отвечает"""
 
     # Создаем мок для экземпляра, который будет поднимать исключение при вызове
     mock_object.side_effect = ApiNotRespondedException
 
     # Создаем мок для класса, который возвращает наш экземпляр при инициализации
-    mock_class = MagicMock(return_value=mock_object)
+    mock_class = mocker.MagicMock(return_value=mock_object)
     monkeypatch.setattr("rest.views.HeroCreationService", mock_class)
 
     resp = api_client.post("/api/hero", data={"name": "superman"}, format="json")
@@ -96,10 +93,10 @@ def test_view_with_api_not_responding(monkeypatch, mock_object, api_client):
     assert resp.text == '"SuperHero API не отвечает!"'
 
 
-def test_view_if_hero_is_not_found(monkeypatch, mock_object, api_client):
+def test_view_if_hero_is_not_found(monkeypatch, mock_object, api_client, mocker):
     mock_object.side_effect = HeroNotFound
 
-    mock_class = MagicMock(return_value=mock_object)
+    mock_class = mocker.MagicMock(return_value=mock_object)
     monkeypatch.setattr("rest.views.HeroCreationService", mock_class)
 
     resp = api_client.post("/api/hero", data={"name": "doNotExist"})
