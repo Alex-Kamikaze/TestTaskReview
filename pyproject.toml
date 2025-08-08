@@ -19,7 +19,6 @@ dependencies = [
     "pytest>=8.4.1",
     "pytest-django>=4.11.1",
     "pytest-mock>=3.14.1",
-    "python-dotenv==1.1.1",
     "requests==2.32.4",
     "requests-mock>=1.12.1",
     "ruff>=0.12.7",
