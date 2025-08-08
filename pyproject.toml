@@ -10,6 +10,7 @@ dependencies = [
     "charset-normalizer==3.4.2",
     "django==5.2.4",
     "django-filter==25.1",
+    "django-health-check>=3.20.0",
     "djangorestframework==3.16.0",
     "environs>=14.3.0",
     "factory-boy>=3.3.3",
