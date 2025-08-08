@@ -1,0 +1,13 @@
+version: "3.10"
+
+services:
+  app:
+    build:
+      context: ../
+      dockerfile: ./ops/Dockerfile
+    command: uv run gunicorn hero_api.wsgi:application
+    env_file:
+      - ../.env
+    restart: always
+    ports: 
+      - '8000:8000'

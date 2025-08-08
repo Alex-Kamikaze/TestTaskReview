@@ -10,12 +10,17 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/5.2/ref/settings/
 """
 
-import json
 from pathlib import Path
-from os import getenv
-from dotenv import load_dotenv
+from environs import Env
+import os
 
-load_dotenv()
+
+env = Env()
+env.read_env()
+
+def path(*args):
+    return os.path.join(BASE_DIR, *args)
+PROJECT = "superhero"
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -25,15 +30,14 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/5.2/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = str(getenv("SECRET_KEY"))
+SECRET_KEY = env("SECRET_KEY", default="SECRET_KEY")
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = bool(getenv("DEBUG"))
+DEBUG = env.bool("DEBUG", default=False)
 
-ALLOWED_HOSTS = json.loads(getenv("ALLOWED_HOSTS"))
+ALLOWED_HOSTS = env.list("ALLOWED_HOSTS", default=[])
 
-SUPERHERO_API_KEY = str(getenv("SUPERHERO_API_KEY"))
-
+SUPERHERO_API_KEY = env.str("SUPERHERO_API_KEY", default="")
 
 # Application definition
 
@@ -84,7 +88,7 @@ WSGI_APPLICATION = "hero_api.wsgi.application"
 DATABASES = {
     "default": {
         "ENGINE": "django.db.backends.sqlite3",
-        "NAME": BASE_DIR / "db.sqlite3",
+        "NAME":env.str("DB_URI", default="sqlite://:memory:"),
     }
 }
 
@@ -129,3 +133,8 @@ STATIC_URL = "static/"
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
+STATIC_ROOT = path(
+    PROJECT,
+    "files",
+    "static",
+)
