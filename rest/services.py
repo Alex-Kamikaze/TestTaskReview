@@ -25,7 +25,7 @@ class Response(Protocol):
 
 
 class RequestClient(Protocol):
-    def get(url: str) -> Response: ...
+    def __call__(url: str) -> Response: ...
 
 
 @dataclass
@@ -52,7 +52,7 @@ class HeroCreationService:
 
     def _process_hero_api_response(
         self, raw_response: Dict[str, str]
-    ) -> HeroServiceModel:
+    ) -> list[HeroServiceModel]:
         """Обработка ответа с внешнего API"""
         if raw_response.get("response") == "error":
             raise HeroNotFound()
