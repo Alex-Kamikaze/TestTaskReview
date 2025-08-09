@@ -1,5 +1,5 @@
 from factory.django import DjangoModelFactory
-from .models import Hero
+from ..models import Hero
 
 
 class HeroModelFactory(DjangoModelFactory):
