@@ -1,0 +1,64 @@
+[project]
+name = "hero-api"
+version = "0.1.0"
+description = "Тестовое задание"
+readme = "README.md"
+requires-python = ">=3.11"
+dependencies = [
+    "asgiref==3.9.1",
+    "certifi==2025.8.3",
+    "charset-normalizer==3.4.2",
+    "dj-database-url>=3.0.1",
+    "django==5.2.4",
+    "django-filter==25.1",
+    "django-health-check>=3.20.0",
+    "djangorestframework==3.16.0",
+    "environs>=14.3.0",
+    "factory-boy>=3.3.3",
+    "gunicorn>=23.0.0",
+    "idna==3.10",
+    "psycopg2-binary>=2.9.10",
+    "pytest>=8.4.1",
+    "pytest-django>=4.11.1",
+    "pytest-mock>=3.14.1",
+    "requests==2.32.4",
+    "requests-mock>=1.12.1",
+    "ruff>=0.12.7",
+    "sqlparse==0.5.3",
+    "tzdata==2025.2",
+    "urllib3==2.5.0",
+]
+
+[tool.ruff]
+target-version = "py311"
+
+lint.select = [
+    "T20", # flake8-print
+    "UP007", # not use Optional
+    "UP006", # not use List as type
+    "PLC2401", # non-ascii-name
+    "PLC2403", # non-ascii-import-name
+    "TID252", # absolute imports
+    "B006",  #mutable data structures for argument defaults
+]
+
+exclude = [
+    "eggs",
+    ".git",
+    ".hg",
+    ".mypy_cache",
+    ".nox",
+    ".tox",
+    ".venv",
+    ".pyc",
+    ".pyi",
+    "_build",
+    "buck-out",
+    "build",
+    "dist",
+    "migrations",
+]
+
+[tool.ruff.format]
+skip-magic-trailing-comma = false
+quote-style = "double"
